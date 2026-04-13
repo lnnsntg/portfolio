@@ -16,10 +16,15 @@ load_dotenv()
 
 app = FastAPI(title="Portfolio Chatbot API")
 
-# CORS - permitir todos los origins para desarrollo
+# CORS - configurable per environment
+# Local dev: http://localhost:5173 (Vite), http://localhost:3000
+# Production: https://developer-ports.duckdns.org
+ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
+origins = [o.strip() for o in ALLOWED_ORIGINS.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
