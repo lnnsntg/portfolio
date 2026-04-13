@@ -172,7 +172,7 @@ function Portfolio() {
           <a href="https://www.upwork.com/freelancers/~015fccc96f66fddf4f" target="_blank" className="cta-button">
             💬 Contact me on Upwork
           </a>
-          <a href="mailto:santiagodelgado5773@gmail.com" className="cta-button secondary">
+          <a href="mailto:lnnsntg@gmail.com" className="cta-button secondary">
             📧 Email
           </a>
         </section>

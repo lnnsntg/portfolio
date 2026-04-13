@@ -125,7 +125,7 @@ def chat(request: ChatRequest):
 
     if not response:
         # Single fallback if AI connectivity fails
-        response = "Lo siento, estoy teniendo problemas de conexión ahora mismo. Por favor, contacta directamente a Lenin en santiagodelgado5773@gmail.com o a través de Upwork. ¡Estará encantado de ayudarte!"
+        response = "Lo siento, estoy teniendo problemas de conexión ahora mismo. Por favor, contacta directamente a Lenin en lnnsntg@gmail.com o a través de Upwork. ¡Estará encantado de ayudarte!"
 
     return {
         "response": response,
