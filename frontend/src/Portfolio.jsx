@@ -32,7 +32,7 @@ const SOCIALS = [
 function Portfolio() {
   const [botOpen, setBotOpen] = useState(false)
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hi! I am Lenin. Ask me about my services or projects. 🚀' }
+    { role: 'assistant', content: "Hi! I'm Lenin's virtual assistant. Ask me about his services or projects. 🚀" }
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)

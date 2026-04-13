@@ -10,6 +10,9 @@ frontend/.venv/
 __pycache__/
 *.pyc
 
+# Build output
+dist/
+
 # Variables de entorno 🤐 (NUNCA subas .env con secretos)
 .env
 
