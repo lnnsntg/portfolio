@@ -1,0 +1,20 @@
+# Dependencias
+node_modules/
+
+# Entornos virtuales
+.venv/
+backend/.venv/
+frontend/.venv/
+
+# Caché de Python
+__pycache__/
+*.pyc
+
+# Variables de entorno 🤐 (NUNCA subas .env con secretos)
+.env
+
+# Playwright
+.playwright-mcp/
+
+# Qwen Code config (local)
+.qwen/
