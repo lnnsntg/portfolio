@@ -27,6 +27,6 @@ else
 fi
 
 echo "→ Reloading backend..."
-systemctl reload portfolio-backend
+systemctl restart portfolio-backend
 
 echo "✓ Deploy OK $(date)"
