@@ -21,3 +21,6 @@ dist/
 
 # Qwen Code config (local)
 .qwen/
+
+# VS Code local settings
+.vscode/
