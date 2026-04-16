@@ -21,3 +21,4 @@ dist/
 
 # Qwen Code config (local)
 .qwen/
+.vscode/
