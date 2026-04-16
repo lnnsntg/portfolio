@@ -17,7 +17,7 @@ else
 fi
 
 # Frontend: build solo si cambió algo relevante
-if if git diff HEAD@{1} HEAD --name-only | grep -q "^frontend/"; then
+if  git diff HEAD@{1} HEAD --name-only | grep -q "^frontend/"; then
     echo "→ Building frontend..."
     cd $APP_DIR/frontend
     npm ci
