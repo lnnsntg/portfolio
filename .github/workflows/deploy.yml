@@ -1,25 +1,71 @@
-name: Deploy
+# .github/workflows/deploy.yml
+name: Deploy Portfolio
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches: [ main ]
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    deploy:
+        runs-on: ubuntu-latest
 
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
-          port: 5773
-          script: |
-            cd /var/www/portfolio
-            chmod +x portfolio_deploy.sh
-            ./portfolio_deploy.sh
+        steps:
+            - name: Checkout (para detectar cambios)
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2 # necesario para comparar HEAD~1 vs HEAD
+
+            - name: Detectar cambios
+              id: changes
+              run: |
+                  echo "backend=$(git diff HEAD~1 HEAD --name-only | grep -qE 'pyproject.toml|uv.lock' && echo true || echo false)" >> $GITHUB_OUTPUT
+                  echo "frontend=$(git diff HEAD~1 HEAD --name-only | grep -q '^frontend/' && echo true || echo false)" >> $GITHUB_OUTPUT
+
+            - name: Pull en el VPS
+              uses: appleboy/ssh-action@v1
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  passphrase: ${{ secrets.PASSPHRASE }}
+                  port: ${{ secrets.SSH_PORT}}
+                  script: |
+                      cd /var/www/portfolio
+                      git pull origin main
+
+            - name: Sync Python deps (si cambió backend)
+              if: steps.changes.outputs.backend == 'true'
+              uses: appleboy/ssh-action@v1
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  passphrase: ${{ secrets.PASSPHRASE }}
+                  port: ${{ secrets.SSH_PORT}}
+                  script: |
+                      cd /var/www/portfolio/backend
+                      uv sync --frozen
+
+            - name: Build frontend (si cambió frontend)
+              if: steps.changes.outputs.frontend == 'true'
+              uses: appleboy/ssh-action@v1
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  passphrase: ${{ secrets.PASSPHRASE }}
+                  port: ${{ secrets.SSH_PORT}}
+                  script: |
+                      cd /var/www/portfolio/frontend
+                      npm ci
+                      npm run build
+
+            - name: Reload backend
+              uses: appleboy/ssh-action@v1
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  passphrase: ${{ secrets.PASSPHRASE }}
+                  port: ${{ secrets.SSH_PORT}}
+                  script: systemctl restart portfolio-backend
