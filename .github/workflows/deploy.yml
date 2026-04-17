@@ -18,6 +18,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
+          port: 5773
           script: |
             cd /var/www/portfolio
             chmod +x portfolio_deploy.sh
