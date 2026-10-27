@@ -5,7 +5,7 @@ set -euo pipefail
 
 SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/sites-available" && pwd)"
 DEST_DIR="/etc/nginx/sites-available"
-SITES="soluciones.uk chat-bot.soluciones.uk webhook-agent.duckdns.org"
+SITES="soluciones.uk webhook-agent.duckdns.org"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo "→ Se necesita root: sudo bash $0" >&2

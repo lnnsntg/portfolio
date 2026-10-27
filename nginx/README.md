@@ -13,8 +13,12 @@ Por eso los cambios de nginx se aplican a mano con el script de abajo.
 | Fichero | Dominio | Sirve |
 |---|---|---|
 | `sites-available/soluciones.uk` | `soluciones.uk` **y** `www.soluciones.uk` | SPA del portfolio (`/var/www/portfolio/frontend/dist`) + `/api` y `/chat` por `unix:/run/portfolio.sock` |
-| `sites-available/chat-bot.soluciones.uk` | `chat-bot.soluciones.uk` | SPA del chatbot (`/var/www/chatbot/frontend/dist`) + `/api/` por `unix:/run/chatbot.sock` |
 | `sites-available/webhook-agent.duckdns.org` | `webhook-agent.duckdns.org` | Proxy a Flask en `127.0.0.1:3333` |
+
+`chat-bot.soluciones.uk` **no vive aquí**: su `server` block está versionado en el
+repo `chatbot` (`nginx/sites-available/chat-bot.soluciones.uk`), porque es una
+aplicación distinta. Este repo solo gestiona su propio bot, el que se sirve en
+`soluciones.uk/chat` a través de `portfolio.sock`.
 
 `soluciones.uk` es el dominio canónico. `www.soluciones.uk` **no redirige**: sirve
 exactamente el mismo contenido (mismo `root`, mismo cert, mismo proxy). El cert de
