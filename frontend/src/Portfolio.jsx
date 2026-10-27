@@ -8,7 +8,7 @@ const PROJECTS = [
     description: "Interactive chat with local AI using Ollama. FastAPI + React + LLM integration demo.",
     tech: ["FastAPI", "React", "Ollama", "Python"],
     github: "https://github.com/lnnsntg/chatbot",
-    demo: "https://chat-bot-ports.duckdns.org",
+    demo: "https://chat-bot.soluciones.uk",
     status: "live"
   },
   {

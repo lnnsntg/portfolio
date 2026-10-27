@@ -3,7 +3,7 @@
 Full-stack portfolio website with embedded AI chatbot assistant.
 Built with React + FastAPI + Ollama.
 
-🌐 **Live at:** https://developer-ports.duckdns.org
+🌐 **Live at:** https://solucionesapp.info
 
 ## Tech Stack
 
