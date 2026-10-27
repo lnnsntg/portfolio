@@ -22,3 +22,6 @@ dist/
 # Qwen Code config (local)
 .qwen/
 .vscode/
+
+# marcador de deploy (lo escribe .github/workflows/deploy.yml)
+.deployed-sha

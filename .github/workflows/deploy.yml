@@ -4,24 +4,14 @@ name: Deploy Portfolio
 on:
     push:
         branches: [ main ]
+    workflow_dispatch:
 
 jobs:
     deploy:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Checkout (para detectar cambios)
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 2 # necesario para comparar HEAD~1 vs HEAD
-
-            - name: Detectar cambios
-              id: changes
-              run: |
-                  echo "backend=$(git diff HEAD~1 HEAD --name-only | grep -qE 'pyproject.toml|uv.lock' && echo true || echo false)" >> $GITHUB_OUTPUT
-                  echo "frontend=$(git diff HEAD~1 HEAD --name-only | grep -q '^frontend/' && echo true || echo false)" >> $GITHUB_OUTPUT
-
-            - name: Pull en el VPS
+            - name: Deploy en el VPS
               uses: appleboy/ssh-action@v1
               with:
                   host: ${{ secrets.SSH_HOST }}
@@ -30,42 +20,68 @@ jobs:
                   passphrase: ${{ secrets.PASSPHRASE }}
                   port: ${{ secrets.SSH_PORT}}
                   script: |
+                      set -e
                       cd /var/www/portfolio
+
+                      OLD=$(git rev-parse HEAD)
                       git pull origin main
+                      NEW=$(git rev-parse HEAD)
+                      MARK=/var/www/portfolio/.deployed-sha
 
-            - name: Sync Python deps (si cambió backend)
-              if: steps.changes.outputs.backend == 'true'
-              uses: appleboy/ssh-action@v1
-              with:
-                  host: ${{ secrets.SSH_HOST }}
-                  username: ${{ secrets.SSH_USER }}
-                  key: ${{ secrets.SSH_KEY }}
-                  passphrase: ${{ secrets.PASSPHRASE }}
-                  port: ${{ secrets.SSH_PORT}}
-                  script: |
-                      cd /var/www/portfolio/backend
-                      uv sync --frozen
+                      # Base de comparacion: el ultimo SHA aplicado en este servidor.
+                      # Si no hay marcador (primer deploy con este sistema) o el commit ya no
+                      # existe, se aplica todo: asi un push con varios commits no se salta nada.
+                      if [ -f "$MARK" ] && git cat-file -e "$(cat "$MARK")^{commit}" 2>/dev/null; then
+                        BASE=$(cat "$MARK")
+                        CHANGED=$(git diff --name-only "$BASE" "$NEW")
+                      else
+                        BASE=""
+                        CHANGED="TODO"
+                      fi
 
-            - name: Build frontend (si cambió frontend)
-              if: steps.changes.outputs.frontend == 'true'
-              uses: appleboy/ssh-action@v1
-              with:
-                  host: ${{ secrets.SSH_HOST }}
-                  username: ${{ secrets.SSH_USER }}
-                  key: ${{ secrets.SSH_KEY }}
-                  passphrase: ${{ secrets.PASSPHRASE }}
-                  port: ${{ secrets.SSH_PORT}}
-                  script: |
-                      cd /var/www/portfolio/frontend
-                      npm ci
-                      npm run build
+                      echo "commit desplegado: $OLD -> $NEW (base de comparacion: ${BASE:-ninguna, se aplica todo})"
+                      echo "--- cambios ---"
+                      echo "$CHANGED"
 
-            - name: Reload backend
-              uses: appleboy/ssh-action@v1
-              with:
-                  host: ${{ secrets.SSH_HOST }}
-                  username: ${{ secrets.SSH_USER }}
-                  key: ${{ secrets.SSH_KEY }}
-                  passphrase: ${{ secrets.PASSPHRASE }}
-                  port: ${{ secrets.SSH_PORT}}
-                  script: systemctl restart portfolio-backend
+                      if [ "$CHANGED" = "TODO" ] || echo "$CHANGED" | grep -qE '^backend/portfolio-backend\.service$'; then
+                        echo "-> unit de systemd"
+                        install -m 644 backend/portfolio-backend.service /etc/systemd/system/portfolio-backend.service
+                        systemctl daemon-reload
+                        systemctl enable portfolio-backend.service
+                      fi
+
+                      if [ "$CHANGED" = "TODO" ] || echo "$CHANGED" | grep -qE '^backend/(pyproject\.toml|uv\.lock)$'; then
+                        echo "-> deps de python"
+                        cd /var/www/portfolio/backend
+                        uv sync --frozen
+                        cd /var/www/portfolio
+                      fi
+
+                      if [ "$CHANGED" = "TODO" ] || echo "$CHANGED" | grep -q '^frontend/'; then
+                        echo "-> build del frontend"
+                        cd /var/www/portfolio/frontend
+                        npm ci
+                        npm run build
+                        cd /var/www/portfolio
+                      fi
+
+                      # El servicio va antes que nginx: la unit crea RuntimeDirectory y el
+                      # socket nuevo, y solo despues nginx puede apuntar a esa ruta sin 502.
+                      if [ "$CHANGED" = "TODO" ] || echo "$CHANGED" | grep -qE '^backend/.*\.py$|^backend/portfolio-backend\.service$|^backend/(pyproject\.toml|uv\.lock)$'; then
+                        echo "-> restart de portfolio-backend.service"
+                        systemctl restart portfolio-backend.service
+                        sleep 3
+                        echo "-> health check"
+                        curl -fsS --unix-socket /run/portfolio/portfolio.sock http://localhost/health
+                        echo
+                        # socket de la version anterior (fuera de RuntimeDirectory)
+                        rm -f /run/portfolio.sock
+                      fi
+
+                      if [ "$CHANGED" = "TODO" ] || echo "$CHANGED" | grep -q '^nginx/'; then
+                        echo "-> nginx"
+                        bash nginx/apply.sh
+                      fi
+
+                      echo "$NEW" > "$MARK"
+                      echo "deploy OK: $NEW"
