@@ -12,7 +12,7 @@ Por eso los cambios de nginx se aplican a mano con el script de abajo.
 
 | Fichero | Dominio | Sirve |
 |---|---|---|
-| `sites-available/soluciones.uk` | `soluciones.uk` **y** `www.soluciones.uk` | SPA del portfolio (`/var/www/portfolio/frontend/dist`) + `/api` y `/chat` por `unix:/run/portfolio.sock` |
+| `sites-available/soluciones.uk` | `soluciones.uk` **y** `www.soluciones.uk` | SPA del portfolio (`/var/www/portfolio/frontend/dist`) + `/api` y `/chat` por `unix:/run/portfolio/portfolio.sock` |
 | `sites-available/webhook-agent.duckdns.org` | `webhook-agent.duckdns.org` | Proxy a Flask en `127.0.0.1:3333` |
 
 `chat-bot.soluciones.uk` **no vive aquí**: su `server` block está versionado en el

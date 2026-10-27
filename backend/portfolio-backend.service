@@ -5,10 +5,18 @@ After=network.target
 [Service]
 Type=simple
 User=root
-Group=root
+Group=www-data
+RuntimeDirectory=portfolio
+RuntimeDirectoryMode=0750
 WorkingDirectory=/var/www/portfolio/backend
 Environment=PATH="/var/www/portfolio/backend/.venv/bin"
-ExecStart=/var/www/portfolio/backend/.venv/bin/gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind unix:/run/portfolio.sock --timeout 120 --access-logfile - --error-logfile -
+ExecStart=/var/www/portfolio/backend/.venv/bin/gunicorn main:app \
+    -w 1 \
+    -k uvicorn.workers.UvicornWorker \
+    --bind unix:/run/portfolio/portfolio.sock \
+    --timeout 120 \
+    --access-logfile - \
+    --error-logfile -
 Restart=always
 RestartSec=5
 PrivateTmp=true
